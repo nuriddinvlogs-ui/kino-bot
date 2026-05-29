@@ -111,14 +111,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=markup
         )
         return
+    
     xabar = (
         f"🎬 Salom, <b>{ism}</b>!\n\n"
-        "Kino kodini yuboring — men sizga videoni yuboraman!\n\n"
-        "📌 <b>Buyruqlar:</b>\n"
-        "/kinolar — barcha kinolar\n"
-        "/search nom — qidirish\n"
-        "/help — yordam\n\n"
-        "💡 Misol: <code>F001</code> yuboring"
+        "✨ Obuna tasdiqlandi! <b>Kino kodini kiriting:</b>"
     )
     await update.message.reply_text(xabar, parse_mode="HTML")
 
@@ -126,7 +122,6 @@ async def tekshir_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     user_id = query.from_user.id
-    ism = query.from_user.first_name
     obuna_yok = await obuna_tekshir(context.bot, user_id)
     if obuna_yok:
         tugmalar = []
@@ -136,19 +131,12 @@ async def tekshir_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         tugmalar.append([InlineKeyboardButton("✅ Obuna bo'ldim", callback_data="tekshir")])
         markup = InlineKeyboardMarkup(tugmalar)
         await query.edit_message_text(
-            "⛔ Hali obuna bo'lmadingiz! Iltimos, kanallarga obuna bo'ling:",
+            "⛔ Hali obuna bo'lmadingiz! Iltimos, barcha kanallarga obuna bo'ling:",
             reply_markup=markup
         )
     else:
-        xabar = (
-            f"🎬 Salom, <b>{ism}</b>! Obuna tasdiqlandi ✅\n\n"
-            "Kino kodini yuboring — men sizga videoni yuboraman!\n\n"
-            "📌 <b>Buyruqlar:</b>\n"
-            "/kinolar — barcha kinolar\n"
-            "/search nom — qidirish\n"
-            "/help — yordam\n\n"
-            "💡 Misol: <code>F001</code> yuboring"
-        )
+        # Aynan siz aytgan matn shu yerda chiqadi:
+        xabar = "✅ Obuna tasdiqlandi!\n\n🍿 <b>Iltimos, kino kodini kiriting:</b>"
         await query.edit_message_text(xabar, parse_mode="HTML")
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -214,14 +202,14 @@ async def kino_kod_qabul(update: Update, context: ContextTypes.DEFAULT_TYPE):
         caption += f"\n\n🔢 Kod: <code>{kino['kod']}</code>"
         try:
             await context.bot.forward_message(chat_id=update.effective_chat.id,
-                                               from_chat_id=KANAL_ID, message_id=kino["message_id"])
+                                             from_chat_id=KANAL_ID, message_id=kino["message_id"])
             await update.message.reply_text(caption, parse_mode="HTML")
         except Exception as e:
             logger.error(f"Forward xatosi: {e}")
             await update.message.reply_text(f"⚠️ Video yuklanmadi.\n\n{caption}", parse_mode="HTML")
     else:
         await update.message.reply_text(
-            f"❌ <b>'{matn}'</b> kodi topilmadi.\n\n/kinolar — ro'yxatni ko'ring", parse_mode="HTML")
+            "❌ Bunday kodli kino topilmadi. Iltimos, kodni to'g'ri kiriting yoki /kinolar ro'yxatini ko'ring.", parse_mode="HTML")
 
 async def add_kino_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
