@@ -3,6 +3,7 @@ import sqlite3
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ConversationHandler, filters, ContextTypes, CallbackQueryHandler
 
+# --- SOZLAMALAR ---
 BOT_TOKEN = "8912386359:AAGLyUp8NKXsY6Cw9Gt1q6exiwDkUBmg1Q4"
 KANAL_ID = -1003986913337
 ADMIN_IDS = [5572567608]
@@ -14,6 +15,7 @@ KINO_NOMI, KINO_KOD, KINO_MSG_ID, KINO_TAVSIF, KINO_JANR, KINO_YIL = range(6)
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# --- MA'LUMOTLAR BAZASI BILAN ISHLASH ---
 def db_init():
     conn = sqlite3.connect(DB_FILE)
     cur = conn.cursor()
@@ -84,6 +86,7 @@ def kino_izlash(qidiruv):
     conn.close()
     return rows
 
+# --- OBUNANI TEKSHIRISH FUNKSIYASI ---
 async def obuna_tekshir(bot, user_id):
     obuna_yok = []
     for kanal in MAJBURIY_KANALLAR:
@@ -95,10 +98,11 @@ async def obuna_tekshir(bot, user_id):
             obuna_yok.append(kanal)
     return obuna_yok
 
+# --- START BUYRUG'I ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    ism = update.effective_user.first_name
     obuna_yok = await obuna_tekshir(context.bot, user_id)
+    
     if obuna_yok:
         tugmalar = []
         for kanal in obuna_yok:
@@ -112,17 +116,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
     
-    xabar = (
-        f"🎬 Salom, <b>{ism}</b>!\n\n"
-        "✨ Obuna tasdiqlandi! <b>Kino kodini kiriting:</b>"
-    )
-    await update.message.reply_text(xabar, parse_mode="HTML")
+    await update.message.reply_text("🍿 <b>Iltimos, kino kodini kiriting:</b>", parse_mode="HTML")
 
+# --- OBUNA BO'LDIM TUGMASI BOSILGANDA ---
 async def tekshir_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     user_id = query.from_user.id
     obuna_yok = await obuna_tekshir(context.bot, user_id)
+    
     if obuna_yok:
         tugmalar = []
         for kanal in obuna_yok:
@@ -131,19 +133,20 @@ async def tekshir_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         tugmalar.append([InlineKeyboardButton("✅ Obuna bo'ldim", callback_data="tekshir")])
         markup = InlineKeyboardMarkup(tugmalar)
         await query.edit_message_text(
-            "⛔ Hali obuna bo'lmadingiz! Iltimos, barcha kanallarga obuna bo'ling:",
+            "⛔ Hali barcha kanallarga obuna bo'lmadingiz! Iltimos, ro'yxatdan o'ting:",
             reply_markup=markup
         )
     else:
-        # Aynan siz aytgan matn shu yerda chiqadi:
-        xabar = "✅ Obuna tasdiqlandi!\n\n🍿 <b>Iltimos, kino kodini kiriting:</b>"
-        await query.edit_message_text(xabar, parse_mode="HTML")
+        # Aynan siz aytgan matn: obuna tasdiqlansa kod so'raydi
+        await query.edit_message_text("✅ Obuna tasdiqlandi!\n\n🍿 <b>Iltimos, kino kodini kiriting:</b>", parse_mode="HTML")
 
+# --- HELP BUYRUG'I ---
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "📖 <b>Yordam</b>\n\nKino kodini yuboring — video keladi.\n\n"
         "/kinolar — ro'yxat\n/search nom — qidirish", parse_mode="HTML")
 
+# --- KINOLAR RO'YXATI ---
 async def kinolar_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     obuna_yok = await obuna_tekshir(context.bot, user_id)
@@ -155,6 +158,7 @@ async def kinolar_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         tugmalar.append([InlineKeyboardButton("✅ Obuna bo'ldim", callback_data="tekshir")])
         await update.message.reply_text("⛔ Avval kanallarga obuna bo'ling:", reply_markup=InlineKeyboardMarkup(tugmalar))
         return
+        
     kinolar = barcha_kinolar()
     if not kinolar:
         await update.message.reply_text("📭 Hozircha kinolar yo'q.")
@@ -168,6 +172,7 @@ async def kinolar_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     xabar += "👆 Kodni yuboring — kino keladi!"
     await update.message.reply_text(xabar, parse_mode="HTML")
 
+# --- KINO QIDIRISH ---
 async def search_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text("Masalan: /search Inception")
@@ -181,6 +186,7 @@ async def search_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         xabar += f"• <code>{k[0]}</code> — <b>{k[1]}</b>\n"
     await update.message.reply_text(xabar, parse_mode="HTML")
 
+# --- KOD KUBUL QILISH VA KINONI KANALIDAN FORWARD QILISH ---
 async def kino_kod_qabul(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     obuna_yok = await obuna_tekshir(context.bot, user_id)
@@ -192,6 +198,7 @@ async def kino_kod_qabul(update: Update, context: ContextTypes.DEFAULT_TYPE):
         tugmalar.append([InlineKeyboardButton("✅ Obuna bo'ldim", callback_data="tekshir")])
         await update.message.reply_text("⛔ Avval kanallarga obuna bo'ling:", reply_markup=InlineKeyboardMarkup(tugmalar))
         return
+        
     matn = update.message.text.strip()
     kino = kino_topish(matn)
     if kino:
@@ -201,6 +208,7 @@ async def kino_kod_qabul(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if kino['tavsif']: caption += f"\n\n📖 {kino['tavsif']}"
         caption += f"\n\n🔢 Kod: <code>{kino['kod']}</code>"
         try:
+            # Kanaldan kinoni foydalanuvchiga uzatish (Forward)
             await context.bot.forward_message(chat_id=update.effective_chat.id,
                                              from_chat_id=KANAL_ID, message_id=kino["message_id"])
             await update.message.reply_text(caption, parse_mode="HTML")
@@ -209,8 +217,9 @@ async def kino_kod_qabul(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(f"⚠️ Video yuklanmadi.\n\n{caption}", parse_mode="HTML")
     else:
         await update.message.reply_text(
-            "❌ Bunday kodli kino topilmadi. Iltimos, kodni to'g'ri kiriting yoki /kinolar ro'yxatini ko'ring.", parse_mode="HTML")
+            f"❌ <b>'{matn}'</b> kodi topilmadi.\n\n/kinolar — ro'yxatni ko'ring", parse_mode="HTML")
 
+# --- ADMIN: KINO QO'SHISH (CONVERSATION) ---
 async def add_kino_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
         await update.message.reply_text("⛔ Faqat adminlar uchun.")
@@ -262,6 +271,7 @@ async def add_bekor(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("❌ Bekor qilindi.")
     return ConversationHandler.END
 
+# --- ADMIN: KINONI O'CHIRISH ---
 async def del_kino(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
         await update.message.reply_text("⛔ Faqat adminlar uchun.")
@@ -274,9 +284,11 @@ async def del_kino(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text(f"❌ {context.args[0]} topilmadi.")
 
+# --- ASOSIY ISHGA TUSHIRISH (WEBHOOK) ---
 def main():
     db_init()
     app = ApplicationBuilder().token(BOT_TOKEN).build()
+    
     add_conv = ConversationHandler(
         entry_points=[CommandHandler("add_kino", add_kino_start)],
         states={
@@ -289,6 +301,7 @@ def main():
         },
         fallbacks=[CommandHandler("bekor", add_bekor)],
     )
+    
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CommandHandler("kinolar", kinolar_cmd))
@@ -297,8 +310,15 @@ def main():
     app.add_handler(CallbackQueryHandler(tekshir_callback, pattern="tekshir"))
     app.add_handler(add_conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, kino_kod_qabul))
-    print("Bot ishga tushdi!")
-    app.run_polling()
+    
+    # PythonAnywhere uchun Webhook sozlamalari
+    URL_PATH = f"bot/{BOT_TOKEN}"
+    app.run_webhook(
+        listen="127.0.0.1",
+        port=8000,
+        url_path=URL_PATH,
+        webhook_url=f"https://davronov.pythonanywhere.com/{URL_PATH}"
+    )
 
 if __name__ == "__main__":
     main()
