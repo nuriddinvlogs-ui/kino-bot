@@ -5,7 +5,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 
 BOT_TOKEN = "8912386359:AAGLyUp8NKXsY6Cw9Gt1q6exiwDkUBmg1Q4"
 KANAL_ID = -1003986913337
-ADMIN_IDS = [123456789]
+ADMIN_IDS = [5572567608]
 DB_FILE = "kinolar.db"
 MAJBURIY_KANALLAR = ["@pocoyo_gaming", "@pocoyo_pubg"]
 
